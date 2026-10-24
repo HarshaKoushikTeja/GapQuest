@@ -1,12 +1,13 @@
 # Cubbie Student Skills
 
-Four Cubbie Skills for the moments college students actually text about. Built for the Cubbie Hackathon (Track 1).
+Five Cubbie Skills for the moments college students actually text about. Built for the Cubbie Hackathon (Track 1).
 
 | Skill | The moment | What Cubbie does |
 | --- | --- | --- |
 | [grade-rescue](skills/grade-rescue) | "What do I need on the final to keep a B?" | Reads your Canvas grades and weights, does the exact math, shows which assignments move your grade most, and checks in weekly only when the numbers change |
 | [career-fair-followup](skills/career-fair-followup) | "Met 5 recruiters, emailed none." | Turns notes, voice memos or business-card photos into personal follow-up emails (Gmail drafts, never sent without your yes) and nudges you a week later |
 | [free-time-radar](skills/free-time-radar) | "I have 3 hours free and no idea what is on campus." | Matches Sun Devil Central events to the gaps in your calendar and your interests; optional 7:30 am brief |
+| [student-deal-finder](skills/student-deal-finder) | "About to pay full price for this." | Finds the cheapest real total (shipping, tax, student discounts, used and local pickup) and hands you the checkout |
 | [late-night-food-run](skills/late-night-food-run) | "It's 1 AM. What's actually open?" | Three places really open near campus, within your budget and diet; hands you the checkout |
 
 ## Install on Cubbie
