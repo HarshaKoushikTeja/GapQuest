@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Free Time Radar: match campus events to a student's free time for one day.
+"""GapQuest: match campus events to a student's free time for one day.
 
 Reads a CampusGroups / iCalendar events feed (ASU's Sun Devil Central by default), keeps the events that happen on
 the given day and fit the student's free windows, ranks them by the student's interests, and prints a short list.
@@ -27,7 +27,7 @@ from datetime import datetime, timedelta, timezone
 ASU_FEED = "https://sundevilcentral.eoss.asu.edu/ical/arizonau/ical_arizonau.ics"
 HERE = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_FEED = os.path.join(HERE, "..", "assets", "sample_feed.ics")
-CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cache", "free-time-radar")
+CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cache", "gapquest")
 CACHE_TTL = 3600  # the feed says it refreshes hourly
 MAX_EVENT_HOURS = 12  # longer "events" are multi-week listings, not something to drop into
 HIDDEN_LOCATION = "sign in to download the location"
@@ -53,7 +53,7 @@ def fetch_feed(url, refresh=False):
     if not refresh and os.path.exists(path) and time.time() - os.path.getmtime(path) < CACHE_TTL:
         return path
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "free-time-radar/1.0 (Cubbie Skill)"})
+        req = urllib.request.Request(url, headers={"User-Agent": "gapquest/1.0 (Cubbie Skill)"})
         with urllib.request.urlopen(req, timeout=45) as r:
             data = r.read()
     except Exception as e:  # network, HTTP, TLS

@@ -1,9 +1,9 @@
 ---
-name: free-time-radar
+name: gapquest
 description: Finds campus events, club meetings, workshops and food that fit inside the gaps in a student's day, using their calendar and ASU's Sun Devil Central events feed, and sends a short morning brief. Use whenever a student asks "what's happening on campus today", "anything to do between classes", "any events with free food", "what should I go to tonight", "any AI or career events this week", says they're bored or want to meet people, or wants a daily morning summary of their day, even if they don't say "events". Works for any school whose events site offers an iCal subscribe link.
 ---
 
-# Free Time Radar
+# GapQuest
 
 Students miss most of what happens on campus because nobody checks Sun Devil Central between classes. This Skill
 looks at the student's day, finds the real gaps, and picks the two or three events worth walking to, every
@@ -76,7 +76,7 @@ When the student later says "not into X" or "more like that", update the interes
 
 8. **Offer the morning brief once.** "Want this every weekday at 7:30 am?" Create the daily check-in with Cubbie's
    reminders ability only after a yes, at the time and days they choose. Word it so it works on its own:
-   "Free Time Radar morning brief: get the student's local time, read today's Google Calendar and today's Canvas due
+   "GapQuest morning brief: get the student's local time, read today's Google Calendar and today's Canvas due
    dates, run scripts/radar.py with the student's saved campus, interests and skip list, and text the brief. If no
    event fits, send only the due-today line."
 
