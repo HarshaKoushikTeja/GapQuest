@@ -1,6 +1,6 @@
 # GapQuest
 
-You have 2 hours between classes and no plan. GapQuest is a Cubbie Skill that checks your calendar and ASU's Sun Devil Central, then texts you the club events, workshops and free food that fit your free time. Built for the Cubbie Hackathon (Track 1).
+You have 2 hours between classes and no plan. GapQuest is a Cubbie Skill that checks your calendar and ASU's Sun Devil Central, then texts you the club events, workshops and free food that fit your free time. Ask "where’s the free food today?" and it lists only events that say food is provided. Built for the Cubbie Hackathon (Track 1).
 
 **Install:** text Cubbie this link and reply "yes":
 

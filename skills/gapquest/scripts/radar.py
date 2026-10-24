@@ -32,10 +32,43 @@ CACHE_TTL = 3600  # the feed says it refreshes hourly
 MAX_EVENT_HOURS = 12  # longer "events" are multi-week listings, not something to drop into
 HIDDEN_LOCATION = "sign in to download the location"
 
-FOOD_RE = re.compile(
-    r"\b(free (food|pizza|lunch|dinner|breakfast|snacks?|boba|tacos?|donuts?|coffee|drinks?|meal)|"
-    r"food (will be |is )?(provided|served)|refreshments|snacks (will be )?provided|pizza|boba|bbq|barbecue|"
-    r"potluck|tacos?|donuts?|catered|cookies)\b", re.I)
+_ITEMS = (r"pizza|panda express|chick-fil-a|chipotle|insomnia cookies|crumbl(?: cookies)?|tacos?|burritos?|"
+          r"donuts?|doughnuts?|bagels?|cookies|cupcakes?|cake|ice cream|boba|bbq|barbecue|wings|sandwich(?:es)?|"
+          r"subs|nachos|popcorn|pastries|desserts?|sweets|candy|treats|fruit|smoothies?|coffee|hot cocoa|"
+          r"breakfast|brunch|lunch|dinner|snacks?|refreshments|food|drinks|meals?")
+ITEM_RE = re.compile(r"\b(" + _ITEMS + r")\b", re.I)
+FREE_RE = re.compile(
+    r"\bfree\b[^.!\n]{0,25}\b(" + _ITEMS + r")\b|"                                  # free pizza, free food & drinks
+    r"\b(" + _ITEMS + r")\b[^.!\n]{0,40}\b(provided|served|on us|complimentary|for free|is free|are free)\b|"
+    r"\b(provided|serve|serving|served|complimentary)\b[^.!\n]{0,15}\b(" + _ITEMS + r")\b|"
+    r"\b(enjoy|grab|get|receive|have|eat|with)\b (some |free |delicious |light |a |hot |fresh )*"
+    r"(" + _ITEMS + r")\b", re.I)
+PAID_RE = re.compile(
+    r"for purchase|to purchase|available for sale|% night|percent(age)? night|food trucks?|"
+    r"food (drive|packing|donations?)|(dog|cat|pet) food|donate canned|"
+    r"bring (a|an|your|your own|some)( own)? (dish|picnic|lunch|dinner|food|snacks?|beverages?|drinks?|plate)|"
+    r"potluck|(entry|admission|tickets?) (is|are|costs?) \$\d|\$\d+(\.\d\d)? (entry|admission|per (person|ticket))",
+    re.I)
+PLAIN_ITEMS = {"food", "drinks", "meal", "meals"}
+
+
+def food_info(text):
+    """('free' | 'maybe' | 'paid' | None, [food items named])"""
+    items = []
+    for m in ITEM_RE.finditer(text):
+        k = m.group(1).lower()
+        k = {"doughnut": "donuts", "doughnuts": "donuts", "donut": "donuts", "taco": "tacos", "barbecue": "bbq",
+             "snack": "snacks", "meal": "meals", "crumbl": "crumbl cookies", "cupcake": "cupcakes"}.get(k, k)
+        if k not in items:
+            items.append(k)
+    if not items:
+        return None, []
+    named = [i for i in items if i not in PLAIN_ITEMS] or items
+    if PAID_RE.search(text):
+        return "paid", named[:3]
+    if FREE_RE.search(text):
+        return "free", named[:3]
+    return "maybe", named[:3]
 
 
 class RadarError(Exception):
@@ -202,8 +235,11 @@ def score(ev, interests, campus):
             s += 3; why.append(kw.strip())
         elif rx.search(text):
             s += 1.5; why.append(kw.strip())
-    if ev["food"]:
-        s += 2.5 if any(k.strip().lower() in ("free food", "food") for k in interests) else 1.0
+    wants_food = any(k.strip().lower() in ("free food", "food") for k in interests)
+    if ev["food_level"] == "free":
+        s += 2.5 if wants_food else 1.0
+    elif ev["food_level"] == "maybe" and wants_food:
+        s += 0.5
     camps, online = campus_of(ev)
     if campus and campus.lower() in [c.lower() for c in camps]:
         s += 1
@@ -214,8 +250,9 @@ def score(ev, interests, campus):
     return s, why
 
 
-def matches(events, day_start, day_end, windows, campus, include_online, interests, exclude, min_attend):
-    out = []
+def matches(events, day_start, day_end, windows, campus, include_online, interests, exclude, min_attend,
+            food_mode=None):
+    out, food_outside = [], 0
     for ev in events:
         st, en = ev["start"], ev["end"]
         if st.tzinfo is None:  # floating time: assume the student's zone
@@ -234,6 +271,9 @@ def matches(events, day_start, day_end, windows, campus, include_online, interes
         blob = " ".join([ev["title"], ev["type"], ev.get("host", ""), " ".join(ev["tags"])]).lower()
         if any(x.strip().lower() and x.strip().lower() in blob for x in exclude):
             continue
+        level, items = food_info(ev["title"] + " " + ev.get("description", ""))
+        if food_mode and level not in food_mode:
+            continue
         best = None
         for ws, we in windows:
             o_s, o_e = max(st, ws), min(en, we)
@@ -244,9 +284,11 @@ def matches(events, day_start, day_end, windows, campus, include_online, interes
             if overlap >= need and (best is None or overlap > best[0]):
                 best = (overlap, o_s, o_e)
         if not best:
+            if food_mode:
+                food_outside += 1
             continue
         ev = dict(ev)
-        ev["food"] = bool(FOOD_RE.search(ev["title"] + " " + ev.get("description", "")))
+        ev["food_level"], ev["food_items"] = level, items
         s, why = score(ev, interests, campus)
         full = best[1] <= st and best[2] >= en
         if full:
@@ -254,8 +296,11 @@ def matches(events, day_start, day_end, windows, campus, include_online, interes
         ev.update(local_start=st, local_end=en, fits_fully=full, attend_from=best[1], attend_to=best[2],
                   score=s, why=why, campuses=camps, online=online)
         out.append(ev)
-    out.sort(key=lambda e: (-e["score"], e["local_start"]))
-    return out
+    if food_mode:  # free food first, whole event fits first, then soonest
+        out.sort(key=lambda e: (e["food_level"] != "free", not e["fits_fully"], e["local_start"]))
+    else:
+        out.sort(key=lambda e: (-e["score"], e["local_start"]))
+    return out, food_outside
 
 
 # ---------- output ----------
@@ -265,8 +310,10 @@ def line_for(ev):
     where = ev.get("location") or ("online" if ev["online"] and not ev["campuses"] else
                                    (", ".join(ev["campuses"]) + " campus" if ev["campuses"] else "location on RSVP page"))
     extras = []
-    if ev["food"]:
-        extras.append("food mentioned")
+    if ev["food_level"] == "free":
+        extras.append("free " + ", ".join(ev["food_items"]))
+    elif ev["food_level"] == "maybe":
+        extras.append("food mentioned: " + ", ".join(ev["food_items"]))
     if not ev["fits_fully"]:
         extras.append(f"you can catch {fmt_time(ev['attend_from'])}-{fmt_time(ev['attend_to'])}")
     host = f" ({ev['host']})" if ev.get("host") else ""
@@ -293,6 +340,8 @@ def main(argv=None):
     p.add_argument("--include-online", action="store_true", help="Also suggest online events")
     p.add_argument("--interests", default="", help="Comma-separated interests, e.g. 'ai,career,free food,cricket'")
     p.add_argument("--exclude", default="", help="Comma-separated words to skip, e.g. 'spiritual,housing'")
+    p.add_argument("--food", action="store_true", help="Only events whose description says the food is free")
+    p.add_argument("--food-maybe", action="store_true", help="With --food, also events that mention food without saying it's free")
     p.add_argument("--top", type=int, default=3, help="How many events to list (default 3)")
     p.add_argument("--refresh", action="store_true", help="Ignore the one-hour cache and download again")
     p.add_argument("--json", action="store_true")
@@ -322,8 +371,11 @@ def main(argv=None):
 
         interests = [x for x in args.interests.split(",") if x.strip()]
         exclude = [x for x in args.exclude.split(",") if x.strip()]
-        found = matches(events, day_start, day_end, windows, args.campus, args.include_online,
-                        interests, exclude, args.min_attend)
+        food_mode = None
+        if args.food or args.food_maybe:
+            food_mode = {"free", "maybe"} if args.food_maybe else {"free"}
+        found, food_outside = matches(events, day_start, day_end, windows, args.campus, args.include_online,
+                                      interests, exclude, args.min_attend, food_mode)
     except RadarError as e:
         print(f"error: {e}")
         return e.code
@@ -334,11 +386,12 @@ def main(argv=None):
             "date": day.isoformat(),
             "free_windows": [[fmt_time(s), fmt_time(e)] for s, e in windows],
             "matches_total": len(found),
+            "food_events_outside_free_time": food_outside if food_mode else None,
             "events": [{
                 "title": e["title"], "host": e.get("host"), "start": e["local_start"].isoformat(),
                 "end": e["local_end"].isoformat(), "fits_fully": e["fits_fully"], "type": e["type"],
                 "tags": e["tags"], "campuses": e["campuses"], "online": e["online"],
-                "location": e.get("location") or None, "food_mentioned": e["food"],
+                "location": e.get("location") or None, "food": e["food_level"], "food_items": e["food_items"],
                 "matched_interests": e["why"], "url": e.get("url"), "score": round(e["score"], 2),
             } for e in found[: args.top]],
         }, indent=2))
@@ -349,12 +402,15 @@ def main(argv=None):
             print(f"{label}: no free time between {fmt_time(day_start)} and {fmt_time(day_end)}.")
         else:
             print(f"{label} free: " + ", ".join(f"{fmt_time(s)}-{fmt_time(e)}" for s, e in windows))
+            what = "free-food events" if food_mode else "events"
             if found:
-                print(f"{len(found)} events fit. Top {min(args.top, len(found))}:")
+                print(f"{len(found)} {what} fit. Top {min(args.top, len(found))}:")
                 for e in found[: args.top]:
                     print(line_for(e))
             else:
-                print("No events fit your free time.")
+                print(f"No {what} fit your free time.")
+            if food_mode and food_outside:
+                print(f"({food_outside} more with food happen while you're busy.)")
     if not windows:
         return 5
     return 0 if found else 6
