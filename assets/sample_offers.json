@@ -1,0 +1,10 @@
+{
+  "item": "Sample: wireless earbuds (example prices, not real offers)",
+  "offers": [
+    {"seller": "Store A", "price": 199.00, "shipping": 0, "condition": "new", "url": "https://example.com/a"},
+    {"seller": "Store B", "price": 189.99, "shipping": 0, "pickup": true, "condition": "new", "url": "https://example.com/b"},
+    {"seller": "Brand education store", "price": 249.00, "discount_percent": 20, "discount_note": "student pricing", "condition": "new", "url": "https://example.com/c"},
+    {"seller": "Refurb shop", "price": 149.00, "shipping": 5.99, "condition": "refurbished, 1-year warranty", "url": "https://example.com/d"},
+    {"seller": "Local marketplace listing", "price": 120.00, "taxed": false, "condition": "used, like new", "pickup": true, "url": "https://example.com/e"}
+  ]
+}

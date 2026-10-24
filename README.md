@@ -33,6 +33,15 @@ worth walking to.
 | **Morning brief** | Opt in once and get it every weekday at 7:30 am. Or an 11 am free-food alert that only texts when there's food in your gaps. |
 | **Add it** | "Add the 6 pm one" puts it on your calendar. You tap Register yourself. |
 
+### And it handles the rest of your week
+
+| Mode | You text | GapQuest does |
+|---|---|---|
+| **Grade Rescue** | "What do I need on the ECON final to keep a B?" | Reads your Canvas grades and category weights, does the exact math (drops, extra credit, what-ifs), shows which assignments move your grade most, and checks in weekly only when the numbers change. |
+| **Career Fair Follow-Up** | "Met 4 recruiters today" + business-card photos | Turns notes, voice memos and cards into personal follow-up emails saved as Gmail drafts (never sent for you), and nudges you a week later about anyone who didn't reply. |
+| **Deal Finder** | "Where can I get AirPods Pro cheapest?" | Compares retailers, education pricing, student discounts, refurbished, textbook rentals and local listings by the real total after shipping and Tempe sales tax. Opens the cart; you pay. |
+| **Late-Night Food Run** | "It's 1 am, what's open?" | Three places really open near campus, within your budget and diet, with closing times. |
+
 ## See it
 
 Real output from ASU's Sun Devil Central feed:
@@ -61,7 +70,8 @@ Cubbie:  Free food in your gaps today:
 1. Text Cubbie this link:
    `https://github.com/HarshaKoushikTeja/GapQuest`
 2. Reply "yes" when Cubbie asks to install it. No app, no account, no ASU sign-in.
-3. Ask: "what's happening on campus today?" or "where's the free food?"
+3. Ask: "what's happening on campus today?", "where's the free food?", "what do I need on my final for a B?",
+   "where can I get this cheaper?" or send a photo of a recruiter's business card.
 
 ## Why it's different
 
@@ -69,16 +79,24 @@ Cubbie:  Free food in your gaps today:
 - **Proactive.** One morning text with what's due and what's worth going to. Silent on days with nothing.
 - **Free food you can trust.** It reads each event's description and only says "free" when the event says so. Food drives, potlucks and "percentage nights" never count.
 - **No login.** It uses Sun Devil Central's public calendar feed, so there's no ASU password or Duo prompt.
-- **Asks before acting.** It never registers you or changes your calendar without a yes.
+- **One install, your whole week.** Events, free food, grades, networking, deals and late-night food in one Skill. Just text it.
+- **Exact where it matters.** Grade math, price totals and free-time matching run in small scripts, so the numbers are right, not guessed.
+- **Asks before acting.** It never registers you, sends an email, changes your calendar or pays without a yes.
 
 ## How it works
 
-The Skill is a set of instructions (`SKILL.md`) plus one small script.
+The Skill is a set of instructions plus three small scripts.
 
 ```
-SKILL.md                When to use it, and the steps Cubbie follows
-scripts/radar.py        Downloads the events feed, finds free windows, matches and ranks events
-assets/sample_feed.ics  One real day of ASU events, for trying it offline
+SKILL.md                     Modes, the events steps, and the rules every mode follows
+references/grades.md         Grade Rescue steps          references/course-file.md   its data format
+references/networking.md     Career Fair Follow-Up steps
+references/deals.md          Deal Finder steps           references/offers-file.md   its data format
+references/food-run.md       Late-Night Food Run steps
+scripts/radar.py             Events feed -> free windows -> matched, ranked events (and free food)
+scripts/grade_math.py        Exact grade math: current grade, range, what you need, biggest swings, what-ifs
+scripts/compare.py           Ranks offers by real total: price - discounts + shipping + tax
+assets/                      Sample data for each script, so everything runs offline
 ```
 
 Sun Devil Central's feed is about 5 MB and 5,000 events. `radar.py` downloads it (cached for an hour, since the feed
@@ -91,6 +109,8 @@ Try it without Cubbie:
 ```bash
 python3 scripts/radar.py --sample --now 2026-10-27T07:30-07:00 --busy 09:00-10:15 --busy 12:00-13:15 --campus Tempe --interests "ai,career,free food"
 python3 scripts/radar.py --sample --now 2026-10-27T07:30-07:00 --busy 09:00-10:15 --campus Tempe --food
+python3 scripts/grade_math.py --sample --target B --solve-for final
+python3 scripts/compare.py --sample --tax-rate 8.1
 ```
 
 **Other schools.** Sun Devil Central runs on CampusGroups, and other CampusGroups schools have the same Subscribe
@@ -98,13 +118,15 @@ link on their events page. Give GapQuest that link and it works there too.
 
 ## What it won't do
 
-- Register you for events or send anything for you.
-- Promise free food the event didn't mention, or invent an event, time or room.
+- Register you for events, send an email or message for you, place an order or pay.
+- Do your graded work, or contact anyone but you.
+- Promise free food the event didn't mention, or invent an event, grade, price or coupon.
 - Show rooms that Sun Devil Central hides behind sign-in. It gives the campus and the event link instead.
 
 ## Built for the Cubbie Hackathon
 
 Track 1 asks for a Skill students would miss if it disappeared. GapQuest turns the dead time between classes into
-the events, people and free food you would otherwise hear about the next day.
+the events, people and free food you would otherwise hear about the next day, and covers the rest of the week too:
+the final you're worried about, the recruiters you meant to email, the thing you almost paid full price for.
 
 **If you'd use this, [vote for GapQuest](https://hackathon.cubbie.ai).** `.edu` email needed.

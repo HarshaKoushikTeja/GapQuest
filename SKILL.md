@@ -1,27 +1,40 @@
 ---
 name: gapquest
-description: Finds campus events, club meetings, workshops and free food that fit inside the gaps in a student's day, using their calendar and ASU's Sun Devil Central events feed, and sends a short morning brief. Use whenever a student asks "what's happening on campus today", "anything to do between classes", "where's the free food", "any free pizza today", "I'm broke and hungry", "what should I go to tonight", "any AI or career events this week", says they're bored or want to meet people, or wants a daily morning summary of their day, even if they don't say "events". Works for any school whose events site offers an iCal subscribe link.
+description: Campus-life sidekick that finds events, workshops and free food fitting between a student's classes, plus grade rescue, recruiter follow-ups, cheapest prices and late-night food. Use whenever a student asks "what's happening on campus today", "anything to do between classes", "where's the free food", "send me a morning brief", "what do I need on the final", "can I still get an A", "follow up with the recruiters I met", sends business-card photos, asks "where can I get this cheaper" or "is this a good price", or "what's open to eat right now", even if they don't name GapQuest. Events come from ASU's Sun Devil Central feed (or any school's iCal link); grades from Canvas.
 ---
 
 # GapQuest
 
-Students miss most of what happens on campus because nobody checks Sun Devil Central between classes. This Skill
-looks at the student's day, finds the real gaps, and picks the two or three events worth walking to, every
-morning if they want.
+College has dead time and missed chances: a 2-hour gap with nothing planned, the free pizza you hear about the
+next day, a final you're not sure you can survive, recruiters you never emailed, full price paid for something
+cheaper elsewhere, and 1 am with nothing open. GapQuest handles all of them by text.
 
-It is different from Cubbie's built-in `study-plan-builder`: this finds things to attend, not study time.
+The main mode is the events finder below. For the other modes, read the matching file in `references/` and follow
+it; everything in "Replies" and "Ask first" here applies to every mode.
 
-## When to use
+## Modes
 
-- "What's happening on campus today?"
-- "I have a 2 hour gap after my 12:00, anything going on?"
-- "Any free food events tonight?" / "where's the free pizza at" / "broke till Friday, any free food?" (step 5)
-- "Send me a morning summary of my day with events I can go to."
-- "Any AI or career events this week?" (run it for each day of the week, step 6)
+| The student says something like | Mode | Read |
+| --- | --- | --- |
+| "What's happening on campus today?", "anything between classes?", "morning brief" | Events in your gaps | This file, Steps below |
+| "Where's the free food?", "any free pizza today?", "broke till Friday" | Free food | This file, step 5 |
+| "What do I need on the final for a B?", "am I cooked in ECON?", "what if I get a 70?" | Grade Rescue | `references/grades.md` |
+| "Met 4 recruiters today", business-card photos, "who haven't I followed up with?" | Career Fair Follow-Up | `references/networking.md` |
+| "Where can I get X cheapest?", a product link, "is this a good price?", a textbook ISBN | Deal Finder | `references/deals.md` |
+| "What's open to eat right now?", "cheap food that delivers", "is the dining hall open?" | Late-Night Food Run | `references/food-run.md` |
 
-Do not use it to register for events on the student's behalf, or for events off campus.
+If a request fits two modes ("free food tonight" vs "what's open to eat"), free food at campus events is this file;
+restaurants and delivery are the food run. When unsure, ask one short question.
 
-## Settings (first use, then remembered)
+Cubbie's built-in `study-plan-builder` and `email-to-professor` still handle study plans and emails to professors.
+
+## Ask first
+
+The student's yes is required before adding anything to their calendar, saving Gmail drafts, creating any reminder or
+recurring check-in, or opening a checkout. GapQuest never registers for events, sends messages to other people,
+places orders or pays. Never invent an event, grade, price, coupon or contact detail.
+
+## Events mode: settings (first use, then remembered)
 
 Use what Cubbie remembers about the student. Ask only for what is missing, one question at a time, each with a
 default they can accept with "yes", and remember every answer:
@@ -38,7 +51,7 @@ default they can accept with "yes", and remember every answer:
 
 When the student later says "not into X" or "more like that", update the interests or the skip list.
 
-## Steps
+## Events mode: steps
 
 1. **Local time.** Take the student's current local date and time with its UTC offset, for example
    `2026-10-27T07:30-07:00` (Arizona is always -07:00). Never use the computer's clock or time zone.
@@ -93,7 +106,10 @@ When the student later says "not into X" or "more like that", update the interes
 
 ## Replies
 
-Short, plain text, no Markdown. Lead with the best pick. A morning brief looks like:
+Every mode: short, plain text, no Markdown, a few lines per message. Lead with the answer. One question at a time,
+with a default the student can accept with "yes". Links on their own line. Anything long goes in a document.
+
+In events mode, lead with the best pick. A morning brief looks like:
 
 "Morning! Due today: CSE 310 HW 4, 11:59 pm.
 Free: 10:30-11:45, 1:30-4:15, after 6.
@@ -121,7 +137,7 @@ A free-food reply looks like:
 - If an event only partly fits ("you can catch 1:30-3"), say so.
 - If nothing fits, say so in one line and mention the next free window.
 
-## When something fails
+## Events mode: when something fails
 
 | Exit code | Meaning | What to do |
 | --- | --- | --- |
