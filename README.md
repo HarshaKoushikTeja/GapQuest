@@ -1,6 +1,6 @@
 # Cubbie Student Skills
 
-Three Cubbie Skills for the moments college students actually text about. Built for the Cubbie Hackathon (Track 1).
+Four Cubbie Skills for the moments college students actually text about. Built for the Cubbie Hackathon (Track 1).
 
 | Skill | The moment | What Cubbie does |
 | --- | --- | --- |
